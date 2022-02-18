@@ -6,20 +6,20 @@ const relocatorRule = {
   test: /\.(m?js|node)$/u,
   parser: { amd: false },
   use: {
-      loader: "@vercel/webpack-asset-relocator-loader",
-      options: {
-          outputAssetBase: "native_modules",
-      },
+    loader: "@vercel/webpack-asset-relocator-loader",
+    options: {
+      outputAssetBase: "native_modules",
+    },
   },
 };
 const tsLoaderRule = {
   test: /\.tsx?$/u,
   exclude: /(node_modules|\.webpack)/u,
   use: {
-      loader: "ts-loader",
-      options: {
-          transpileOnly: true,
-      },
+    loader: "ts-loader",
+    options: {
+      transpileOnly: true,
+    },
   },
 };
 

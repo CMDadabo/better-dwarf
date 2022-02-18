@@ -1,4 +1,6 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
+import { exec } from "child_process";
+import path from "path";
 
 import ioHook from "iohook";
 
@@ -18,6 +20,15 @@ const createWindow = (): void => {
   const mainWindow = new BrowserWindow({
     height: 600,
     width: 800,
+    webPreferences: {
+      preload: path.join(
+        app.getAppPath(),
+        ".webpack",
+        "renderer",
+        "main_window",
+        "index.js"
+      ),
+    },
   });
 
   // and load the index.html of the app.
@@ -33,7 +44,6 @@ const createWindow = (): void => {
   ioHook.on("mouseup", (event: Event) => {
     console.log(event);
   });
-
 
   // Register and start hook
   ioHook.start();
@@ -69,3 +79,25 @@ app.on("activate", () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
+
+ipcMain.handle("read-dwarves", () => {
+  const dfHomeDir = path.normalize(
+    `C:\\Users\\cmdad\\Games\\DF Starter Pack\\Dwarf Fortress 0.47.05`
+  );
+
+  return new Promise((resolve) => {
+    exec(
+      `dfhack-run ${
+        (path.join(path.relative(dfHomeDir, app.getAppPath())), "dwarfreader")
+      }`,
+      { cwd: dfHomeDir },
+      (...args: any) => {
+        resolve(args);
+      }
+    );
+  });
+});
+
+ipcMain.handle("test", () => {
+  return new Promise((resolve) => resolve("test"));
+});
