@@ -97,7 +97,3 @@ ipcMain.handle("read-dwarves", () => {
     );
   });
 });
-
-ipcMain.handle("test", () => {
-  return new Promise((resolve) => resolve("test"));
-});

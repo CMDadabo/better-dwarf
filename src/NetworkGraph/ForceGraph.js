@@ -26,7 +26,7 @@ export default function ForceGraph(
     linkStrokeWidth = 1.5, // given d in links, returns a stroke width in pixels
     linkStrokeLinecap = "round", // link stroke linecap
     linkStrength,
-    colors = d3.schemeCategory10, // an array of color strings, for the node groups
+    colors = () => d3.schemeCategory10, // an array of color strings, for the node groups
     width = 640, // outer width, in pixels
     height = 400, // outer height, in pixels
     invalidation, // when this promise resolves, stop the simulation
@@ -46,14 +46,20 @@ export default function ForceGraph(
   const L = typeof linkStroke !== "function" ? null : d3.map(links, linkStroke);
 
   // Replace the input nodes and links with mutable objects for the simulation.
-  nodes = d3.map(nodes, (_, i) => ({ id: N[i] }));
+  const mNodes = d3.map(nodes, (_, i) => ({ id: N[i] }));
   links = d3.map(links, (_, i) => ({ source: LS[i], target: LT[i] }));
 
   // Compute default domains.
   if (G && nodeGroups === undefined) nodeGroups = d3.sort(G);
 
   // Construct the scales.
-  const color = nodeGroup == null ? null : d3.scaleOrdinal(nodeGroups, colors);
+  const color =
+    nodeGroup == null
+      ? null
+      : d3.scaleOrdinal(
+          nodeGroups,
+          colors(Array.from(new Set(nodeGroups)).length)
+        );
 
   // Construct the forces.
   const forceNode = d3.forceManyBody();
@@ -82,23 +88,57 @@ export default function ForceGraph(
     .join("line");
 
   const simulation = d3
-    .forceSimulation(nodes)
+    .forceSimulation(mNodes)
     .force("link", forceLink)
     .force("charge", forceNode)
     .force("center", d3.forceCenter())
+    .force("collide", d3.forceCollide().radius(7))
     .on("tick", ticked);
+
+  // const node = svg
+  //   .append("g")
+  //   .attr("fill", nodeFill)
+  //   .attr("stroke", nodeStroke)
+  //   .attr("stroke-opacity", nodeStrokeOpacity)
+  //   .attr("stroke-width", nodeStrokeWidth)
+  //   .selectAll("circle")
+  //   .data(mNodes)
+  //   .join("circle")
+  //   .attr("r", nodeRadius)
+  //   .call(drag(simulation));
 
   const node = svg
     .append("g")
     .attr("fill", nodeFill)
+    .selectAll("g")
+    .data(mNodes)
+    .join("g")
+    .call(drag(simulation));
+
+  svg.call(
+    d3
+      .zoom()
+      .extent([-width / 2, -height / 2, width, height])
+      .scaleExtent([1, 8])
+    // .on("zoom", zoomed)
+  );
+
+  node
+    .append("circle")
     .attr("stroke", nodeStroke)
     .attr("stroke-opacity", nodeStrokeOpacity)
     .attr("stroke-width", nodeStrokeWidth)
-    .selectAll("circle")
-    .data(nodes)
-    .join("circle")
-    .attr("r", nodeRadius)
-    .call(drag(simulation));
+    .attr("r", nodeRadius);
+
+  node
+    .append("text")
+    .attr("dx", 0)
+    .attr("dy", 0)
+    .text((d) => nodes[d.index].name);
+
+  function zoomed({ transform }) {
+    node.attr("transform", (d) => `translate(${transform.apply(d)})`);
+  }
 
   if (W) link.attr("stroke-width", ({ index: i }) => W[i]);
   if (L) link.attr("stroke", ({ index: i }) => L[i]);
@@ -119,7 +159,8 @@ export default function ForceGraph(
       .attr("x2", (d) => d.target.x)
       .attr("y2", (d) => d.target.y);
 
-    node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+    // node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+    node.attr("transform", (d) => `translate(${d.x},${d.y})`);
   }
 
   function drag(simulation) {
