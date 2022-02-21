@@ -12,10 +12,10 @@ import "@fontsource/lato/300.css";
 import "@fontsource/lato/400.css";
 import "@fontsource/lato/700.css";
 import "./index.css";
-import NetworkChart from "./NetworkGraph/NetworkGraph";
+import NetworkGraph from "./NetworkGraph/Container";
 
 export default () => (
   <>
-    <NetworkChart />
+    <NetworkGraph />
   </>
 );

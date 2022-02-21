@@ -30,6 +30,7 @@ export default function ForceGraph(
     width = 640, // outer width, in pixels
     height = 400, // outer height, in pixels
     invalidation, // when this promise resolves, stop the simulation
+    showNodeLabels,
   } = {}
 ) {
   // Compute values.
@@ -95,18 +96,6 @@ export default function ForceGraph(
     .force("collide", d3.forceCollide().radius(7))
     .on("tick", ticked);
 
-  // const node = svg
-  //   .append("g")
-  //   .attr("fill", nodeFill)
-  //   .attr("stroke", nodeStroke)
-  //   .attr("stroke-opacity", nodeStrokeOpacity)
-  //   .attr("stroke-width", nodeStrokeWidth)
-  //   .selectAll("circle")
-  //   .data(mNodes)
-  //   .join("circle")
-  //   .attr("r", nodeRadius)
-  //   .call(drag(simulation));
-
   const node = svg
     .append("g")
     .attr("fill", nodeFill)
@@ -130,14 +119,12 @@ export default function ForceGraph(
     .attr("stroke-width", nodeStrokeWidth)
     .attr("r", nodeRadius);
 
-  node
-    .append("text")
-    .attr("dx", 0)
-    .attr("dy", 0)
-    .text((d) => nodes[d.index].name);
-
-  function zoomed({ transform }) {
-    node.attr("transform", (d) => `translate(${transform.apply(d)})`);
+  if (showNodeLabels) {
+    node
+      .append("text")
+      .attr("dx", 0)
+      .attr("dy", 0)
+      .text((d) => nodes[d.index].name);
   }
 
   if (W) link.attr("stroke-width", ({ index: i }) => W[i]);
